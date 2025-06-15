@@ -1,0 +1,111 @@
+[
+  {
+    "id": "q_security_incidents_by_category",
+    "text": "How have security incidents trended by category over the last 12 months?",
+    "params": {
+      "date_field": "incident_date",
+      "category_field": "incident_category",
+      "value_field": "incident_count",
+      "time_granularity": "month",
+      "lookback": "12M"
+    },
+    "vizType": "stacked_area_chart"
+  },
+  {
+    "id": "q_endpoint_vulnerability_assessment",
+    "text": "What is the distribution of endpoint vulnerabilities by severity?",
+    "params": {
+      "endpoint_field": "endpoint_id",
+      "severity_field": "vulnerability_severity",
+      "value_field": "vulnerability_count"
+    },
+    "vizType": "bar_chart"
+  },
+  {
+    "id": "q_web_threat_summary",
+    "text": "Provide a summary of web threats detected in the selected period.",
+    "params": {
+      "threat_type_field": "web_threat_type",
+      "value_field": "threat_count",
+      "lookback": "7D"
+    },
+    "vizType": "pie_chart"
+  },
+  {
+    "id": "q_removable_media_usage_audit",
+    "text": "How is removable media usage distributed across endpoints over the last 30 days?",
+    "params": {
+      "endpoint_field": "endpoint_id",
+      "media_count_field": "media_insertions",
+      "time_granularity": "day",
+      "lookback": "30D"
+    },
+    "vizType": "bar_chart"
+  },
+  {
+    "id": "q_risky_sign_ins",
+    "text": "What risky sign-in attempts have been detected over the last 30 days?",
+    "params": {
+      "date_field": "sign_in_date",
+      "risk_level_field": "risk_level",
+      "value_field": "attempt_count",
+      "lookback": "30D"
+    },
+    "vizType": "line_chart"
+  },
+  {
+    "id": "q_email_collaboration_alerts",
+    "text": "What alerts have been generated from email and collaboration platforms in the last 30 days?",
+    "params": {
+      "alert_source_field": "platform",
+      "value_field": "alert_count",
+      "time_granularity": "day",
+      "lookback": "30D"
+    },
+    "vizType": "bar_chart"
+  },
+  {
+    "id": "q_top_phishing_incidents_alerts",
+    "text": "What are the top 10 phishing incident types by alert count?",
+    "params": {
+      "phishing_type_field": "phishing_type",
+      "alert_count_field": "alert_count",
+      "limit": 10
+    },
+    "vizType": "bar_chart"
+  },
+  {
+    "id": "q_top_malware_incident_sender_recipient",
+    "text": "Who are the top senders and recipients involved in malware incidents?",
+    "params": {
+      "sender_field": "sender",
+      "recipient_field": "recipient",
+      "value_field": "incident_count",
+      "limit": 10
+    },
+    "vizType": "grouped_bar_chart"
+  },
+  {
+    "id": "q_security_incident_alert_trends",
+    "text": "How have security incidents and alerts trended week-over-week over the last 12 weeks?",
+    "params": {
+      "date_field": "timestamp",
+      "incident_field": "incident_count",
+      "alert_field": "alert_count",
+      "time_granularity": "week",
+      "lookback": "12W"
+    },
+    "vizType": "line_chart"
+  },
+  {
+    "id": "q_incident_service_change_management_overview",
+    "text": "Provide an overview of incidents, service requests, and change management tickets over the last 12 months.",
+    "params": {
+      "ticket_type_field": "ticket_type",
+      "value_field": "ticket_count",
+      "time_granularity": "month",
+      "lookback": "12M"
+    },
+    "vizType": "stacked_bar_chart"
+  }
+]

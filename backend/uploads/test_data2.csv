@@ -1,0 +1,6 @@
+device_name,user_name,location,status,score
+LAPTOP-011,sarah.jones,New York,Active,85
+DESKTOP-012,mike.brown,California,Inactive,72
+LAPTOP-013,lisa.white,Texas,Active,91
+DESKTOP-014,tom.green,Florida,Active,88
+LAPTOP-015,amy.black,Illinois,Inactive,65 

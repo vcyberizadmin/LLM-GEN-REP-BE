@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+pandas
+anthropic
+python-dotenv
+openpyxl
+xlrd
+odfpy
+pyxlsb
+aiosqlite==0.19.0
+uuid 

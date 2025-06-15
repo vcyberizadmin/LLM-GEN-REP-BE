@@ -1,0 +1,11 @@
+device_name,user_name,compliance_status,control_policy,timestamp,department
+LAPTOP-001,john.doe,Compliant,Standard,2024-01-15 09:30:00,Engineering
+DESKTOP-002,jane.smith,Non-Compliant,Strict,2024-01-15 10:15:00,Finance
+LAPTOP-003,bob.wilson,Compliant,Standard,2024-01-15 11:00:00,Marketing
+DESKTOP-004,alice.brown,Compliant,Relaxed,2024-01-15 14:30:00,HR
+LAPTOP-005,charlie.davis,Non-Compliant,Strict,2024-01-15 15:45:00,Engineering
+DESKTOP-006,diana.miller,Compliant,Standard,2024-01-16 08:20:00,Finance
+LAPTOP-007,frank.garcia,Non-Compliant,Standard,2024-01-16 09:10:00,Marketing
+DESKTOP-008,grace.lee,Compliant,Strict,2024-01-16 10:30:00,HR
+LAPTOP-009,henry.taylor,Compliant,Relaxed,2024-01-16 13:15:00,Engineering
+DESKTOP-010,iris.anderson,Non-Compliant,Standard,2024-01-16 16:00:00,Finance

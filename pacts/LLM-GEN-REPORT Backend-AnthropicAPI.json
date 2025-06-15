@@ -1,0 +1,80 @@
+{
+  "consumer": {
+    "name": "LLM-GEN-REPORT Backend"
+  },
+  "interactions": [
+    {
+      "description": "a request to create a message",
+      "providerState": "Anthropic API is available",
+      "request": {
+        "body": {
+          "max_tokens": 1024,
+          "messages": [
+            {
+              "content": "test query",
+              "role": "user"
+            }
+          ],
+          "model": "claude-3-7-sonnet-20250219"
+        },
+        "headers": {
+          "Authorization": "Bearer test-api-key",
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "$.body.max_tokens": {
+            "match": "type"
+          },
+          "$.body.messages": {
+            "match": "type",
+            "min": 1
+          },
+          "$.body.messages[*].content": {
+            "match": "type"
+          },
+          "$.body.messages[*].role": {
+            "match": "type"
+          },
+          "$.body.model": {
+            "match": "type"
+          },
+          "$.header.Authorization": {
+            "match": "regex",
+            "regex": "^Bearer [A-Za-z0-9-]+$"
+          }
+        },
+        "method": "POST",
+        "path": "/v1/messages"
+      },
+      "response": {
+        "body": {
+          "completion": "This is a response"
+        },
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        "matchingRules": {
+          "$.body.completion": {
+            "match": "type"
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-js": {
+      "version": "15.0.1"
+    },
+    "pactRust": {
+      "ffi": "0.4.22",
+      "models": "1.2.3"
+    },
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  },
+  "provider": {
+    "name": "AnthropicAPI"
+  }
+}
