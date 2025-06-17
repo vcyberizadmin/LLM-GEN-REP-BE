@@ -53,7 +53,7 @@ sessions_store = {}
 # Configure CORS to echo back the request Origin and restrict allowed methods/headers
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=".*",  # match any origin and echo it back
+    allow_origin_regex="https://llm-gen-rep-fe.vercel.app",  # match any origin and echo it back
     allow_credentials=True,
     allow_methods=["POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
