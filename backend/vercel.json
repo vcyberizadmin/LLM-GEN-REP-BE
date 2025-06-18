@@ -5,6 +5,17 @@
       "use": "@vercel/python"
     }
   ],
+  "functions": {
+    "main.py": {
+      "maxDuration": 60,
+      "memory": 1024,
+      "excludeFiles": [
+        "node_modules/**",
+        "tests/**",
+        "__pycache__/**"
+      ]
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",
