@@ -108,6 +108,22 @@ Open your browser and navigate to:
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
 
+### 4. Deploying with Vercel
+
+The repository includes a `vercel.json` file that exposes the FastAPI app as a
+serverless function. Use the Vercel CLI to run locally or deploy:
+
+```bash
+# Install the Vercel CLI if needed
+npm install -g vercel
+
+# Start a local Vercel environment
+vercel dev
+
+# Deploy to your Vercel account
+vercel --prod
+```
+
 ---
 
 ## 📊 Features & Usage
