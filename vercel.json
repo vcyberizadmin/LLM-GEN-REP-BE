@@ -1,16 +1,8 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "api/index.py", "use": "@vercel/python" }
-  ],
   "functions": {
-    "api/index.py": {
-      "maxDuration": 60,
-      "memory": 1024,
-      "excludeFiles": "{node_modules/**,tests/**,__pycache__/**}"
-    }
+    "api/index.py": { "maxDuration": 60, "memory": 1024 }
   },
-  "routes": [
-    { "src": "/(.*)", "dest": "api/index.py" }
-  ]
+  "routes": [{ "src": "/(.*)", "dest": "api/index.py" }]
 }
+
