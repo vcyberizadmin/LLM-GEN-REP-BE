@@ -53,16 +53,19 @@ sessions_store = {}
 # Configure CORS to echo back the request Origin and restrict allowed methods/headers
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex="https://llm-gen-rep-fe.vercel.app",  # match any origin and echo it back
+    allow_origin_regex=".*",  # match any origin and echo it back
     allow_credentials=True,
     allow_methods=["POST", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
 )
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
 load_dotenv(find_dotenv(), override=True)
+
+# Determine the directory used for file uploads. In serverless environments like Vercel
+# only `/tmp` is writable, so default to that location. Users can override this via the
+# `UPLOAD_DIR` environment variable configured in the Vercel dashboard.
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"  # Example endpoint
