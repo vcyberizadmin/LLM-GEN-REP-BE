@@ -19,7 +19,7 @@ import logging
 
 # Attempt to import heavy optional dependencies; fallback to stubs during testing.
 try:
-    from services.export_service import ExportService  # pragma: no cover
+    from backend.services.export_service import ExportService  # pragma: no cover
 except ImportError as e:  # pragma: no cover
     logging.warning(
         "Optional dependency failed to import during startup (likely in test environment): %s."
