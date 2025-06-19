@@ -16,9 +16,11 @@ logger = logging.getLogger(__name__)
 class ExportService:
     """Service for exporting visualizations to various formats"""
     
-    def __init__(self, export_dir: str = "exports"):
-        self.export_dir = export_dir
-        os.makedirs(export_dir, exist_ok=True)
+    def __init__(self, export_dir: str | None = None):
+        # Determine export directory. Use parameter if provided, else environment variable,
+        # falling back to a writable /tmp path for serverless environments.
+        self.export_dir = export_dir or os.getenv("EXPORT_DIR", "/tmp/exports")
+        os.makedirs(self.export_dir, exist_ok=True)
         
         # Set up matplotlib style
         plt.style.use('default')
