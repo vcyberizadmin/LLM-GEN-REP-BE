@@ -59,7 +59,12 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
-load_dotenv(find_dotenv(), override=True)
+# Attempt to locate a .env file automatically. If not found, fall back to a path
+# relative to the project root (one directory up from this backend package).
+_env_path = find_dotenv()
+if not _env_path:
+    _env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+load_dotenv(_env_path, override=True)
 
 # Determine the directory used for file uploads. In serverless environments like Vercel
 # only `/tmp` is writable, so default to that location. Users can override this via the
