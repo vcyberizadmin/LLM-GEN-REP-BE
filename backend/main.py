@@ -62,9 +62,10 @@ app.add_middleware(
 
 # Attempt to locate a .env file automatically. If not found, fall back to a path
 # relative to the project root (one directory up from this backend package).
-_env_path = find_dotenv()
-if not _env_path:
-    _env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+_env_path_str = find_dotenv()
+_env_path = Path(_env_path_str) if _env_path_str else Path()
+if not _env_path_str or not _env_path.exists():
+    _env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(_env_path, override=True)
 
 # Determine the directory used for file uploads. In serverless environments like Vercel
