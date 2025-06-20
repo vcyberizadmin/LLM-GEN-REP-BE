@@ -441,7 +441,24 @@ async def analyze(
         }
     except Exception as e:
         logger.error(f"Error calling Anthropic SDK: {e}")
-        raise HTTPException(status_code=500, detail=f"Error communicating with Anthropic API: {e}")
+        api_error = getattr(anthropic, "APIError", Exception)
+        auth_error = getattr(anthropic, "AuthenticationError", None)
+        rate_error = getattr(anthropic, "RateLimitError", None)
+        timeout_error = getattr(anthropic, "APITimeoutError", None)
+        conn_error = getattr(anthropic, "APIConnectionError", None)
+
+        if auth_error and isinstance(e, auth_error):
+            raise HTTPException(status_code=401, detail="Invalid Anthropic API key")
+        if rate_error and isinstance(e, rate_error):
+            raise HTTPException(status_code=429, detail="Anthropic API rate limit exceeded")
+        if timeout_error and isinstance(e, timeout_error):
+            raise HTTPException(status_code=504, detail="Anthropic API request timed out")
+        if conn_error and isinstance(e, conn_error):
+            raise HTTPException(status_code=502, detail="Error connecting to Anthropic API")
+        if isinstance(e, api_error):
+            raise HTTPException(status_code=502, detail=str(e))
+
+        raise HTTPException(status_code=502, detail=f"Error communicating with Anthropic API: {e}")
 
 @app.post("/export/data")
 async def export_data(request: dict):
