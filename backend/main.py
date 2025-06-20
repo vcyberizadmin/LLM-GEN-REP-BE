@@ -5,6 +5,7 @@ from typing import List, Optional
 import os
 import logging
 from dotenv import find_dotenv, load_dotenv
+from pathlib import Path
 import pandas as pd
 import io
 import anthropic
