@@ -203,21 +203,28 @@ async def analyze(
                 excel_bytes = io.BytesIO(file_content)
                 try:
                     df = pd.read_excel(excel_bytes, engine='openpyxl')
+                    excel_bytes.seek(0)
                     sheets = pd.ExcelFile(excel_bytes, engine='openpyxl').sheet_names
                     excel_sheets_info.append(f"{file.filename}: {sheets}")
                 except Exception:
+                    excel_bytes.seek(0)
                     try:
                         df = pd.read_excel(excel_bytes, engine='xlrd')
+                        excel_bytes.seek(0)
                         sheets = pd.ExcelFile(excel_bytes, engine='xlrd').sheet_names
                         excel_sheets_info.append(f"{file.filename}: {sheets}")
                     except Exception:
+                        excel_bytes.seek(0)
                         try:
                             df = pd.read_excel(excel_bytes, engine='odf')
+                            excel_bytes.seek(0)
                             sheets = pd.ExcelFile(excel_bytes, engine='odf').sheet_names
                             excel_sheets_info.append(f"{file.filename}: {sheets}")
                         except Exception:
+                            excel_bytes.seek(0)
                             try:
                                 df = pd.read_excel(excel_bytes, engine='pyxlsb')
+                                excel_bytes.seek(0)
                                 sheets = pd.ExcelFile(excel_bytes, engine='pyxlsb').sheet_names
                                 excel_sheets_info.append(f"{file.filename}: {sheets}")
                             except Exception as e4:
