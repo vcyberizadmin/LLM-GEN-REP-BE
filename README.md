@@ -140,6 +140,7 @@ Open your browser and navigate to:
 ## 🔧 API Endpoints
 
 ### Core Endpoints
+- `GET /analyze` - Basic web form for manual testing
 - `POST /analyze` - Submit data and query for AI analysis
 - `POST /upload` - Upload data files (max 100MB per file)
 - `GET /session/{session_id}` - Retrieve saved session data
