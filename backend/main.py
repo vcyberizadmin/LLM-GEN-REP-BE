@@ -151,6 +151,24 @@ async def upload_files(files: List[UploadFile] = File(...)):
     logger.info(f"Successfully uploaded {len(uploaded)} file(s)")
     return JSONResponse(content={"uploaded": uploaded})
 
+@app.get("/analyze", include_in_schema=False)
+async def analyze_form() -> Response:
+    """Return a tiny HTML form for the POST /analyze endpoint."""
+    html_content = """
+    <html>
+        <body>
+            <h3>/analyze test form</h3>
+            <form action="/analyze" method="post" enctype="multipart/form-data">
+                <input type="text" name="query" placeholder="Query" required />
+                <input type="file" name="files" multiple required />
+                <button type="submit">Submit</button>
+            </form>
+        </body>
+    </html>
+    """
+    return Response(content=html_content, media_type="text/html")
+
+
 @app.post("/analyze")
 async def analyze(
     query: str = Form(...),
