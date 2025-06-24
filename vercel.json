@@ -3,6 +3,9 @@
   "functions": {
     "api/index.py": { "maxDuration": 60, "memory": 1024 }
   },
-  "routes": [{ "src": "/(.*)", "dest": "api/index.py" }]
+   "routes": [{ "src": "/(.*)", "dest": "api/index.py" }],
+  "env": {
+    "ANTHROPIC_API_KEY": "@anthropic_api_key"
+  }
 }
 
