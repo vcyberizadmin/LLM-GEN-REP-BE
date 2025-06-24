@@ -81,8 +81,9 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up environment variables
+# Set up environment variables for local development
 echo "ANTHROPIC_API_KEY=your_api_key_here" > .env
+# In a Vercel deployment, configure this variable in the Vercel dashboard
 
 # Start the backend server
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
@@ -225,7 +226,8 @@ uvicorn main:app --host 0.0.0.0 --port 8000  # Production server
 
 ### Environment Variables
 
-Create a `.env` file in the backend directory:
+Create a `.env` file in the backend directory for local development.
+When deploying on Vercel, set these variables via the Vercel dashboard:
 
 ```env
 # Required
