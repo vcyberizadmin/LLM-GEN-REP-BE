@@ -136,6 +136,16 @@ Open your browser and navigate to:
 - **Data**: CSV, JSON formats
 - **Sessions**: Save and restore complete analysis sessions
 
+### Slide-Level Visualization CLI
+
+Use `auto_visualize.py` to quickly generate charts from a ZIP bundle of slide folders. Each folder name must follow the pattern `Slide-<n>-<Title>`.
+
+```bash
+python auto_visualize.py path/to/bundle.zip [--pptx]
+```
+
+The script extracts the bundle, automatically chooses a chart type based on the folder title, creates a PNG for each slide inside an `output` directory and optionally assembles them into a PowerPoint file.
+
 ---
 
 ## 🔧 API Endpoints
@@ -144,6 +154,8 @@ Open your browser and navigate to:
 - `GET /analyze` - Basic web form for manual testing
 - `POST /analyze` - Submit data and query for AI analysis
 - `POST /upload` - Upload data files (max 100MB per file)
+- `POST /visualize/zip` - Generate slide images from a zipped bundle
+- `POST /process` - Auto-route ZIP bundles to `/visualize/zip` or other files to `/analyze`
 - `GET /session/{session_id}` - Retrieve saved session data
 - `GET /health` - Health check endpoint
 

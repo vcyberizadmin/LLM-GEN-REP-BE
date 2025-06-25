@@ -17,6 +17,8 @@ import uuid
 from datetime import datetime
 import base64
 import logging
+from tempfile import TemporaryDirectory
+from auto_visualize import process_zip
 
 # Attempt to import heavy optional dependencies; fallback to stubs during testing.
 try:
@@ -99,6 +101,40 @@ def root():
 def health():
     return {"status": "ok"}
 
+
+async def _process_zip_upload(file: UploadFile, pptx: bool = False):
+    """Handle a ZIP upload using the auto_visualize utility."""
+    try:
+        contents = await file.read()
+        with TemporaryDirectory() as tmpdir:
+            zip_path = Path(tmpdir) / file.filename
+            with open(zip_path, "wb") as f:
+                f.write(contents)
+            out_dir = Path(tmpdir) / "out"
+            slides, pptx_path = process_zip(zip_path, create_ppt=pptx, output_dir=out_dir)
+
+            slides_out = []
+            for slide in slides:
+                with open(slide["image"], "rb") as img_f:
+                    img_b64 = base64.b64encode(img_f.read()).decode("utf-8")
+                slides_out.append({
+                    "slide_num": slide["slide_num"],
+                    "title": slide["title"],
+                    "chart_type": slide["chart_type"],
+                    "rows": slide["rows"],
+                    "main_file": slide["main_file"],
+                    "image": img_b64,
+                })
+
+            pptx_b64 = None
+            if pptx and pptx_path and pptx_path.exists():
+                pptx_b64 = base64.b64encode(pptx_path.read_bytes()).decode("utf-8")
+
+        return {"slides": slides_out, "pptx": pptx_b64}
+    except Exception as e:
+        logger.error(f"Error processing ZIP upload: {e}")
+        raise
+
 @app.get("/session/{session_id}")
 async def get_session(session_id: str):
     """Retrieve session data for chat history persistence"""
@@ -150,6 +186,14 @@ async def upload_files(files: List[UploadFile] = File(...)):
         })
     logger.info(f"Successfully uploaded {len(uploaded)} file(s)")
     return JSONResponse(content={"uploaded": uploaded})
+
+
+@app.post("/visualize/zip")
+async def visualize_zip_endpoint(file: UploadFile = File(...), pptx: bool = Form(False)):
+    """Endpoint to generate slide visualisations from a ZIP bundle."""
+    if not file.filename.lower().endswith(".zip"):
+        raise HTTPException(status_code=400, detail="Only ZIP files are supported")
+    return await _process_zip_upload(file, pptx)
 
 @app.get("/analyze", include_in_schema=False)
 async def analyze_form() -> Response:
@@ -484,6 +528,20 @@ async def analyze(
             raise HTTPException(status_code=502, detail=str(e))
 
         raise HTTPException(status_code=502, detail=f"Error communicating with Anthropic API: {e}")
+
+
+@app.post("/process")
+async def process_upload(
+    query: str = Form(""),
+    files: List[UploadFile] = File(...),
+    chat_history: Optional[str] = Form(None),
+    session_id: Optional[str] = Form(None),
+    pptx: bool = Form(False),
+):
+    """Route uploaded files to the correct processing endpoint."""
+    if len(files) == 1 and files[0].filename.lower().endswith(".zip"):
+        return await _process_zip_upload(files[0], pptx)
+    return await analyze(query=query, files=files, chat_history=chat_history, session_id=session_id)
 
 @app.post("/export/data")
 async def export_data(request: dict):
