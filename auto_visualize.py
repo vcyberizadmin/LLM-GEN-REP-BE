@@ -175,6 +175,7 @@ def process_zip(zip_path: Path, create_ppt: bool = False, output_dir: Path | Non
                     continue
                 generated_images.append(img_path)
                 main_file = names[0]
+
                 slide_infos.append({
                     "slide_num": num,
                     "title": title,
@@ -186,14 +187,17 @@ def process_zip(zip_path: Path, create_ppt: bool = False, output_dir: Path | Non
                 print(
                     f"[\u2713] Slide {num} – '{title}' → {chart_type} using {main_file} ({rows} rows)"
                 )
+
             except Exception as e:
                 print(f"[!] Slide {num} – '{title}' skipped: {e}", file=sys.stderr)
 
     if create_ppt and generated_images:
+
         pptx_path = out_dir / "visuals.pptx"
         assemble_pptx(generated_images, pptx_path)
 
     return slide_infos, pptx_path
+
 
 
 def main():
@@ -205,6 +209,7 @@ def main():
     if not args.zipfile.exists():
         parser.error(f"ZIP file not found: {args.zipfile}")
 
+
     slides, pptx_path = process_zip(args.zipfile, args.pptx)
     for s in slides:
         print(
@@ -212,6 +217,7 @@ def main():
         )
     if pptx_path:
         print(f"PowerPoint created at: {pptx_path}")
+
 
 
 if __name__ == "__main__":
