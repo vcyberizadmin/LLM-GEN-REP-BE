@@ -125,10 +125,31 @@ def assemble_pptx(images: list[Path], out_file: Path):
     prs.save(out_file)
 
 
-def process_zip(zip_path: Path, create_ppt: bool = False):
-    out_dir = Path(__file__).resolve().parent / "output"
+def process_zip(zip_path: Path, create_ppt: bool = False, output_dir: Path | None = None):
+    """Process a zipped slide bundle and return slide information.
+
+    Parameters
+    ----------
+    zip_path : Path
+        Path to the input ZIP file.
+    create_ppt : bool, optional
+        Whether to assemble the resulting images into a PowerPoint file.
+    output_dir : Path, optional
+        Directory where images (and PPTX) are written. Defaults to a
+        sibling ``output`` folder next to this script.
+
+    Returns
+    -------
+    tuple[list[dict], Path | None]
+        A list of slide info dictionaries and the PowerPoint path if
+        created.
+    """
+
+    out_dir = output_dir or (Path(__file__).resolve().parent / "output")
     out_dir.mkdir(exist_ok=True)
     generated_images = []
+    slide_infos = []
+    pptx_path: Path | None = None
 
     with TemporaryDirectory() as tmpdir:
         with zipfile.ZipFile(zip_path) as zf:
@@ -154,12 +175,29 @@ def process_zip(zip_path: Path, create_ppt: bool = False):
                     continue
                 generated_images.append(img_path)
                 main_file = names[0]
-                print(f"[\u2713] Slide {num} – '{title}' → {chart_type} using {main_file} ({rows} rows)")
+
+                slide_infos.append({
+                    "slide_num": num,
+                    "title": title,
+                    "chart_type": chart_type,
+                    "main_file": main_file,
+                    "rows": rows,
+                    "image": img_path,
+                })
+                print(
+                    f"[\u2713] Slide {num} – '{title}' → {chart_type} using {main_file} ({rows} rows)"
+                )
+
             except Exception as e:
                 print(f"[!] Slide {num} – '{title}' skipped: {e}", file=sys.stderr)
 
     if create_ppt and generated_images:
-        assemble_pptx(generated_images, out_dir / "visuals.pptx")
+
+        pptx_path = out_dir / "visuals.pptx"
+        assemble_pptx(generated_images, pptx_path)
+
+    return slide_infos, pptx_path
+
 
 
 def main():
@@ -171,7 +209,15 @@ def main():
     if not args.zipfile.exists():
         parser.error(f"ZIP file not found: {args.zipfile}")
 
-    process_zip(args.zipfile, args.pptx)
+
+    slides, pptx_path = process_zip(args.zipfile, args.pptx)
+    for s in slides:
+        print(
+            f"[\u2713] Slide {s['slide_num']} – '{s['title']}' → {s['chart_type']} using {s['main_file']} ({s['rows']} rows)"
+        )
+    if pptx_path:
+        print(f"PowerPoint created at: {pptx_path}")
+
 
 
 if __name__ == "__main__":
