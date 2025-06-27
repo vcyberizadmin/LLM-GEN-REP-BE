@@ -154,10 +154,17 @@ The script extracts the bundle, automatically chooses a chart type based on the 
 - `GET /analyze` - Basic web form for manual testing
 - `POST /analyze` - Submit data and query for AI analysis
 - `POST /upload` - Upload data files (max 100MB per file)
-- `POST /visualize/zip` - Generate slide images from a zipped bundle
-- `POST /process` - Auto-route ZIP bundles to `/visualize/zip` or other files to `/analyze`
+- `POST /visualize/zip` - Generate slide images from a zipped bundle (accepts optional `session_id`)
+- `POST /process` - Auto-route ZIP bundles to `/visualize/zip` or other files to `/analyze`; pass `session_id` to persist slide info
 - `GET /session/{session_id}` - Retrieve saved session data
 - `GET /health` - Health check endpoint
+
+Example request:
+
+```bash
+curl -F "file=@slides.zip" -F "pptx=true" -F "session_id=1234" \
+  http://localhost:8000/visualize/zip
+```
 
 ### Export Endpoints
 - `POST /export/chart` - Export chart as image or PDF
