@@ -103,8 +103,17 @@ def health():
     return {"status": "ok"}
 
 
-async def _process_zip_upload(file: UploadFile, pptx: bool = False):
-    """Handle a ZIP upload using the auto_visualize utility."""
+async def _process_zip_upload(
+    file: UploadFile,
+    pptx: bool = False,
+    session_id: Optional[str] = None,
+):
+    """Handle a ZIP upload using the auto_visualize utility.
+
+    If a ``session_id`` is provided, the generated slide data will be stored in
+    the in-memory ``sessions_store`` for later retrieval alongside other
+    session artifacts.
+    """
     try:
         contents = await file.read()
         with TemporaryDirectory() as tmpdir:
@@ -131,7 +140,40 @@ async def _process_zip_upload(file: UploadFile, pptx: bool = False):
             if pptx and pptx_path and pptx_path.exists():
                 pptx_b64 = base64.b64encode(pptx_path.read_bytes()).decode("utf-8")
 
-        return {"slides": slides_out, "pptx": pptx_b64}
+        result = {"slides": slides_out, "pptx": pptx_b64}
+
+        if session_id:
+            now = datetime.now().isoformat()
+            session = sessions_store.get(session_id)
+            if not session:
+                sessions_store[session_id] = {
+                    "session": {
+                        "id": session_id,
+                        "created_at": now,
+                        "updated_at": now,
+                        "dataset_info": {
+                            "columns": [],
+                            "file_names": [file.filename],
+                        },
+                    },
+                    "chatHistory": [],
+                    "visualizations": [],
+                    "slides": slides_out,
+                }
+            else:
+                session.setdefault("slides", []).extend(slides_out)
+                if "session" in session:
+                    session["session"]["updated_at"] = now
+                else:
+                    session["session"] = {
+                        "id": session_id,
+                        "created_at": now,
+                        "updated_at": now,
+                        "dataset_info": {"columns": [], "file_names": [file.filename]},
+                    }
+            sessions_store[session_id] = session or sessions_store[session_id]
+
+        return result
     except Exception as e:
         logger.error(f"Error processing ZIP upload: {e}")
         raise
@@ -199,11 +241,15 @@ async def upload_files(files: List[UploadFile] = File(...)):
 
 
 @app.post("/visualize/zip")
-async def visualize_zip_endpoint(file: UploadFile = File(...), pptx: bool = Form(False)):
+async def visualize_zip_endpoint(
+    file: UploadFile = File(...),
+    pptx: bool = Form(False),
+    session_id: Optional[str] = Form(None),
+):
     """Endpoint to generate slide visualisations from a ZIP bundle."""
     if not file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=400, detail="Only ZIP files are supported")
-    return await _process_zip_upload(file, pptx)
+    return await _process_zip_upload(file, pptx, session_id)
 
 @app.get("/analyze", include_in_schema=False)
 async def analyze_form() -> Response:
@@ -607,7 +653,7 @@ async def process_upload(
 ):
     """Route uploaded files to the correct processing endpoint."""
     if len(files) == 1 and files[0].filename.lower().endswith(".zip"):
-        return await _process_zip_upload(files[0], pptx)
+        return await _process_zip_upload(files[0], pptx, session_id)
     return await analyze(query=query, files=files, chat_history=chat_history, session_id=session_id)
 
 @app.post("/export/data")
