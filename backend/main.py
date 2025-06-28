@@ -8,6 +8,7 @@ from dotenv import find_dotenv, load_dotenv
 from pathlib import Path
 import pandas as pd
 import io
+import zipfile
 import anthropic
 import json
 import re
@@ -179,6 +180,15 @@ async def upload_files(files: List[UploadFile] = File(...)):
         save_path = os.path.join(UPLOAD_DIR, file.filename)
         with open(save_path, "wb") as f:
             f.write(contents)
+        file_ext = file.filename.lower().split('.')[-1]
+        if file_ext == 'zip':
+            tmp_dir = os.path.join(UPLOAD_DIR, f"tmp-{uuid.uuid4().hex}")
+            os.makedirs(tmp_dir, exist_ok=True)
+            try:
+                with zipfile.ZipFile(io.BytesIO(contents)) as zf:
+                    zf.extractall(tmp_dir)
+            except Exception as e:
+                logger.warning(f"Failed to extract zip {file.filename}: {e}")
         uploaded.append({
             "filename": file.filename,
             "size_mb": round(size_mb, 2),
@@ -277,6 +287,63 @@ async def analyze(
                 dfs.append(df)
                 all_columns.update([str(col) for col in df.columns])
                 file_previews.append(f"{file.filename}:\n" + df.head(10).to_csv(index=False))
+            elif file_ext == 'zip':
+                tmp_dir = os.path.join(UPLOAD_DIR, f"tmp-{uuid.uuid4().hex}")
+                os.makedirs(tmp_dir, exist_ok=True)
+                try:
+                    with zipfile.ZipFile(io.BytesIO(file_content)) as zf:
+                        zf.extractall(tmp_dir)
+                        for info in zf.infolist():
+                            if info.is_dir():
+                                continue
+                            extracted_path = os.path.join(tmp_dir, info.filename)
+                            try:
+                                with open(extracted_path, 'rb') as ef:
+                                    inner_bytes = ef.read()
+                                inner_text = inner_bytes.decode(errors="ignore")
+                                inner_ext = info.filename.lower().split('.')[-1]
+                                if inner_ext == 'csv':
+                                    df = pd.read_csv(io.StringIO(inner_text))
+                                elif inner_ext in ['xlsx', 'xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt']:
+                                    excel_bytes = io.BytesIO(inner_bytes)
+                                    try:
+                                        df = pd.read_excel(excel_bytes, engine='openpyxl')
+                                        excel_bytes.seek(0)
+                                        sheets = pd.ExcelFile(excel_bytes, engine='openpyxl').sheet_names
+                                        excel_sheets_info.append(f"{info.filename}: {sheets}")
+                                    except Exception:
+                                        excel_bytes.seek(0)
+                                        try:
+                                            df = pd.read_excel(excel_bytes, engine='xlrd')
+                                            excel_bytes.seek(0)
+                                            sheets = pd.ExcelFile(excel_bytes, engine='xlrd').sheet_names
+                                            excel_sheets_info.append(f"{info.filename}: {sheets}")
+                                        except Exception:
+                                            excel_bytes.seek(0)
+                                            try:
+                                                df = pd.read_excel(excel_bytes, engine='odf')
+                                                excel_bytes.seek(0)
+                                                sheets = pd.ExcelFile(excel_bytes, engine='odf').sheet_names
+                                                excel_sheets_info.append(f"{info.filename}: {sheets}")
+                                            except Exception:
+                                                excel_bytes.seek(0)
+                                                try:
+                                                    df = pd.read_excel(excel_bytes, engine='pyxlsb')
+                                                    excel_bytes.seek(0)
+                                                    sheets = pd.ExcelFile(excel_bytes, engine='pyxlsb').sheet_names
+                                                    excel_sheets_info.append(f"{info.filename}: {sheets}")
+                                                except Exception as e4:
+                                                    logger.error(f"Excel parsing failed for {info.filename}: {e4}")
+                                                    continue
+                                else:
+                                    logger.warning(f"Unsupported file type in zip: {info.filename}")
+                                    continue
+                                dfs.append(df)
+                                all_columns.update([str(col) for col in df.columns])
+                                file_previews.append(f"{info.filename}:\n" + df.head(10).to_csv(index=False))
+                except Exception as e:
+                    logger.warning(f"Could not process zip file {file.filename}: {e}")
+                    continue
             else:
                 logger.warning(f"Unsupported file type: {file.filename}")
                 continue
