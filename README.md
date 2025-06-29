@@ -153,7 +153,7 @@ The script extracts the bundle, automatically chooses a chart type based on the 
 ### Core Endpoints
 - `GET /analyze` - Basic web form for manual testing
 - `POST /analyze` - Submit data and query for AI analysis
-- `POST /upload` - Upload data files (max 100MB per file)
+- `POST /upload` - Upload data files (max 200MB per file)
 - `POST /visualize/zip` - Generate slide images from a zipped bundle (accepts optional `session_id`)
 - `POST /process` - Auto-route ZIP bundles to `/visualize/zip` or other files to `/analyze`; pass `session_id` to persist slide info
 - `GET /session/{session_id}` - Retrieve saved session data
@@ -254,7 +254,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 # Optional
 DATABASE_URL=sqlite:///./data/app.db
-MAX_FILE_SIZE=104857600  # 100MB in bytes
+MAX_FILE_SIZE=209715200  # 200MB in bytes
 UPLOAD_DIR=./uploads
 EXPORT_DIR=./exports
 ```
@@ -287,9 +287,9 @@ EXPORT_DIR=./exports
 - Verify data format compatibility
 
 **File upload failures:**
-- Check file size (max 100MB)
-- Verify file format is supported
-- Ensure sufficient disk space
+ - Check file size (max 200MB)
+ - Verify file format is supported
+ - Ensure sufficient disk space
 
 ### Performance Tips
 
