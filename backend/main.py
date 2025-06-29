@@ -77,6 +77,9 @@ load_dotenv(_env_path, override=True)
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "/tmp/uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+# File upload size limit in bytes (default 100MB, override with MAX_FILE_SIZE)
+MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", str(100 * 1024 * 1024)))
+
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages"  # Example endpoint
 
@@ -210,15 +213,22 @@ async def get_session(session_id: str):
 @app.post("/upload")
 async def upload_files(files: List[UploadFile] = File(...)):
     logger.info(f"/upload endpoint called with {len(files)} file(s)")
-    max_size_mb = 100  # Example: 100MB per file
+    max_size_bytes = MAX_FILE_SIZE
+    max_size_mb = max_size_bytes / (1024 * 1024)
     uploaded = []
     for file in files:
         logger.info(f"Processing file: {file.filename}")
         contents = await file.read()
-        size_mb = len(contents) / (1024 * 1024)
-        if size_mb > max_size_mb:
-            logger.warning(f"File {file.filename} exceeds size limit: {size_mb:.2f}MB")
-            raise HTTPException(status_code=413, detail=f"File {file.filename} exceeds {max_size_mb}MB limit.")
+        size_bytes = len(contents)
+        size_mb = size_bytes / (1024 * 1024)
+        if size_bytes > max_size_bytes:
+            logger.warning(
+                f"File {file.filename} exceeds size limit: {size_mb:.2f}MB"
+            )
+            raise HTTPException(
+                status_code=413,
+                detail=f"File {file.filename} exceeds {int(max_size_mb)}MB limit."
+            )
         save_path = os.path.join(UPLOAD_DIR, file.filename)
         with open(save_path, "wb") as f:
             f.write(contents)
