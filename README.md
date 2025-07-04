@@ -265,6 +265,42 @@ EXPORT_DIR=./exports
 **API Configuration**: Update settings in `backend/main.py`
 **UI Themes**: Customize styles in `frontend/src/styles/`
 
+## Deploying on Vercel
+
+1. Install the Vercel CLI if you haven't already and log in:
+
+```bash
+npm install -g vercel
+vercel login
+```
+
+2. Ensure the `requirements.txt` file is in the repository root. Vercel's Python
+   runtime will install dependencies from this location when building your
+   serverless function.
+
+3. In your Vercel project settings configure the environment variables listed in
+   the **Environment Variables** section above. At a minimum set
+   `ANTHROPIC_API_KEY`.
+
+4. Deploy the application:
+
+```bash
+vercel deploy
+```
+
+5. If you are also serving a built frontend, adjust `vercel.json` so requests to
+   `/api/` go to the backend and other paths serve static assets. A simple
+   example:
+
+```json
+{
+  "routes": [
+    { "src": "/api/(.*)", "dest": "api/index.py" },
+    { "src": "/(.*)", "dest": "frontend/dist/$1" }
+  ]
+}
+```
+
 ---
 
 ## 🚨 Troubleshooting
