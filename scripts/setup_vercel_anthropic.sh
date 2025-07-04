@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Configure Anthropic API key secret and environment variable on Vercel
 # Requires: Vercel CLI installed and user logged in
+
 # Usage: export ANTHROPIC_API_KEY=your_api_key && ./scripts/setup_vercel_anthropic.sh [all|production|preview|development]
 
 set -euo pipefail
 
 SECRET_NAME="anthropic_api_key"
 ENV_NAME="ANTHROPIC_API_KEY"
+
 TARGET="${1:-all}"
 TARGETS=("development" "preview" "production")
 
@@ -28,6 +30,7 @@ if ! vercel secrets ls | grep -q "\b$SECRET_NAME\b"; then
 else
   echo "Secret '$SECRET_NAME' already exists"
 fi
+
 
 # Set environment variable for requested targets
 if [ "$TARGET" = "all" ]; then
