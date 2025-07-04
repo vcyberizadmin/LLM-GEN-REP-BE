@@ -282,6 +282,14 @@ vercel login
    the **Environment Variables** section above. At a minimum set
    `ANTHROPIC_API_KEY`.
 
+   You can automate creating the secret and linking the environment variable for
+   all environments by running:
+
+   ```bash
+   export ANTHROPIC_API_KEY=your_api_key_here
+   ./scripts/setup_vercel_anthropic.sh all
+   ```
+
 4. Deploy the application:
 
 ```bash
