@@ -20,6 +20,7 @@ import base64
 import logging
 from tempfile import TemporaryDirectory
 from auto_visualize import process_zip
+from backend.services.incident_summary import try_parse_incident_summary
 
 # Attempt to import heavy optional dependencies; fallback to stubs during testing.
 try:
@@ -469,6 +470,18 @@ async def analyze(
         content_text = message.content[0].text if hasattr(message.content[0], 'text') else str(message.content)
         logger.info(f"Anthropic response content: {content_text[:300]}")
 
+        # Try to parse incident summary from LLM output
+        def _repair_incident(prompt: str) -> str:
+            resp = client.messages.create(
+                model="claude-3-7-sonnet-20250219",
+                max_tokens=512,
+                temperature=0,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return resp.content[0].text if hasattr(resp.content[0], "text") else str(resp.content)
+
+        incident_summary = try_parse_incident_summary(content_text, _repair_incident)
+
         # Step 2: Extract JSON chart spec from LLM response
         chart_spec = None
         chart_spec_match = re.search(r"```json\s*(\{[\s\S]*?\})\s*```", content_text)
@@ -620,8 +633,9 @@ async def analyze(
         logger.info(f"Saved session {session_id} with {len(updated_history)} chat entries")
         
         return {
-            "response": content_text, 
-            "chartData": chart_data, 
+            "response": content_text,
+            "chartData": chart_data,
+            "incidentSummary": incident_summary,
             "chatHistory": updated_history,
             "csvColumns": csv_columns,  # Send columns directly to frontend
             "datasetInfo": {
