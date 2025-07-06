@@ -93,7 +93,7 @@ async def startup_event():
 
 @app.get("/")
 def root():
-    return {"message": "Your backend is working. Or is it?"}
+    return {"message": "LLM-GEN-REPORT Backend is working!e"}
 
 @app.get("/health")
 def health():
