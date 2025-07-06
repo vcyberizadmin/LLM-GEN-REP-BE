@@ -32,13 +32,13 @@ echo "🗃️ Backup retention: ${BACKUP_RETENTION_DAYS} days"
 # Start cron daemon for automated cleanup (if available)
 if command -v cron >/dev/null 2>&1; then
     echo "⏰ Starting cron for automated cleanup..."
-    cron
+    cron || echo "Warning: Could not start cron daemon"
 fi
 
-# Run initial cleanup
+# Run initial cleanup (non-blocking)
 echo "🧹 Running initial cleanup..."
-cd /app && python scripts/cleanup.py
+cd /app && python scripts/cleanup.py || echo "Warning: Initial cleanup failed, continuing anyway"
 
 # Start the FastAPI application
 echo "🌟 Starting FastAPI server on port $PORT..."
-cd /app && uvicorn backend.main:app --host 0.0.0.0 --port $PORT
+cd /app && uvicorn backend.main:app --host 0.0.0.0 --port $PORT --log-level info

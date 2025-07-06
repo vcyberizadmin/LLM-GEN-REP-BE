@@ -17,10 +17,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt /tmp/
-COPY backend/requirements.txt /tmp/backend-requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /tmp/requirements.txt && \
-    pip install --no-cache-dir -r /tmp/backend-requirements.txt
+    pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Production stage
 FROM python:3.11-slim as production
@@ -54,13 +52,12 @@ RUN chown -R appuser:appuser /app
 # Make scripts executable
 RUN chmod +x /app/scripts/*.sh /app/scripts/*.py
 
-# Set up cron for cleanup
-COPY scripts/crontab /etc/cron.d/app-cleanup
-RUN chmod 0644 /etc/cron.d/app-cleanup && \
-    crontab -u appuser /etc/cron.d/app-cleanup
-
 # Switch to non-root user
 USER appuser
+
+# Set up cron for cleanup (as appuser)
+COPY scripts/crontab /tmp/app-crontab
+RUN crontab /tmp/app-crontab || echo "Cron setup failed, will skip automation"
 
 # Expose port
 EXPOSE 8000
@@ -70,4 +67,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Initialize and start application
-CMD ["/app/scripts/init.sh"]
+CMD ["python", "/app/scripts/start.py"]
