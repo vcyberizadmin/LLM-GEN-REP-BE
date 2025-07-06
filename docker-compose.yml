@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - UPLOAD_DIR=/app/data/uploads
+      - BACKUP_DIR=/app/data/backups
+      - LOG_DIR=/app/data/logs
+      - MAX_FILE_SIZE_MB=25
+      - FILE_RETENTION_DAYS=7
+      - BACKUP_RETENTION_DAYS=14
+      - ENVIRONMENT=development
+    volumes:
+      # Persistent data volume
+      - app_data:/app/data
+      # Development volume mounts (comment out for production)
+      - ./backend:/app/backend:ro
+      - ./scripts:/app/scripts:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  app_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data
+
+networks:
+  default:
+    name: llm-gen-report-network

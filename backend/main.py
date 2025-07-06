@@ -131,7 +131,7 @@ async def get_session(session_id: str):
 @app.post("/upload")
 async def upload_files(files: List[UploadFile] = File(...)):
     logger.info(f"/upload endpoint called with {len(files)} file(s)")
-    max_size_mb = 100  # Example: 100MB per file
+    max_size_mb = int(os.getenv("MAX_FILE_SIZE_MB", "25"))  # Configurable file size limit
     uploaded = []
     for file in files:
         logger.info(f"Processing file: {file.filename}")
@@ -652,6 +652,110 @@ async def export_session_dashboard(session_id: str):
     except Exception as e:
         logger.error(f"Error exporting session dashboard: {e}")
         raise HTTPException(status_code=500, detail=f"Dashboard export failed: {str(e)}")
+
+@app.post("/admin/cleanup")
+async def trigger_cleanup():
+    """Manually trigger file cleanup process"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["python", "scripts/cleanup.py"],
+            capture_output=True,
+            text=True,
+            cwd="/app"
+        )
+        
+        return {
+            "success": result.returncode == 0,
+            "output": result.stdout,
+            "errors": result.stderr if result.stderr else None
+        }
+    except Exception as e:
+        logger.error(f"Error triggering cleanup: {e}")
+        raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}")
+
+@app.post("/admin/backup")
+async def trigger_backup():
+    """Manually trigger backup process"""
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["python", "scripts/backup.py"],
+            capture_output=True,
+            text=True,
+            cwd="/app"
+        )
+        
+        return {
+            "success": result.returncode == 0,
+            "output": result.stdout,
+            "errors": result.stderr if result.stderr else None
+        }
+    except Exception as e:
+        logger.error(f"Error triggering backup: {e}")
+        raise HTTPException(status_code=500, detail=f"Backup failed: {str(e)}")
+
+@app.get("/admin/storage-stats")
+async def get_storage_stats():
+    """Get current storage statistics"""
+    try:
+        upload_dir = os.getenv("UPLOAD_DIR", "/app/data/uploads")
+        backup_dir = os.getenv("BACKUP_DIR", "/app/data/backups")
+        
+        def get_dir_size(path):
+            total_size = 0
+            try:
+                for dirpath, dirnames, filenames in os.walk(path):
+                    for filename in filenames:
+                        filepath = os.path.join(dirpath, filename)
+                        if os.path.exists(filepath):
+                            total_size += os.path.getsize(filepath)
+            except Exception:
+                pass
+            return total_size
+        
+        def format_size(size_bytes):
+            if size_bytes == 0:
+                return "0 B"
+            size_names = ["B", "KB", "MB", "GB"]
+            i = 0
+            while size_bytes >= 1024 and i < len(size_names) - 1:
+                size_bytes /= 1024.0
+                i += 1
+            return f"{size_bytes:.2f} {size_names[i]}"
+        
+        upload_size = get_dir_size(upload_dir) if os.path.exists(upload_dir) else 0
+        backup_size = get_dir_size(backup_dir) if os.path.exists(backup_dir) else 0
+        
+        upload_files = sum(1 for _ in Path(upload_dir).rglob('*') if _.is_file()) if os.path.exists(upload_dir) else 0
+        backup_files = len(list(Path(backup_dir).glob('uploads_backup_*.tar.gz'))) if os.path.exists(backup_dir) else 0
+        
+        return {
+            "upload_directory": {
+                "path": upload_dir,
+                "size": format_size(upload_size),
+                "size_bytes": upload_size,
+                "file_count": upload_files
+            },
+            "backup_directory": {
+                "path": backup_dir,
+                "size": format_size(backup_size),
+                "size_bytes": backup_size,
+                "backup_count": backup_files
+            },
+            "total_storage": {
+                "size": format_size(upload_size + backup_size),
+                "size_bytes": upload_size + backup_size
+            },
+            "configuration": {
+                "max_file_size_mb": int(os.getenv("MAX_FILE_SIZE_MB", "25")),
+                "file_retention_days": int(os.getenv("FILE_RETENTION_DAYS", "7")),
+                "backup_retention_days": int(os.getenv("BACKUP_RETENTION_DAYS", "14"))
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error getting storage stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get storage stats: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
