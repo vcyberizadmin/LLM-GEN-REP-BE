@@ -58,9 +58,33 @@ yarn-error.log*
 
 # === Project specific ===
 uploads/
+backend/uploads/
+data/
+backups/
+logs/
+
 # Temporary files
 *.tmp
 *.log
+
+# === Docker ===
+docker-compose.override.yml
+.docker/
+
+# === Railway/Deployment ===
+.railway/
+
+# === Backup files ===
+*.tar.gz
+*.zip
+*.bak
+
+# === Local development ===
+.env.local
+.env.development
+.env.test
+local_data/
+test_uploads/
 
 # === macOS ===
 .Spotlight-V100
